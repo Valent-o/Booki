@@ -747,15 +747,39 @@
         </section>
 
         <footer>
-            <div class="container" style="text-align: center; padding: 30px 0; color: #fff;">
-                <p style="margin-bottom: 10px;">© 2025 BookiBookingBot. Усі права захищені.</p>
-                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.8rem; font-weight: bold;">
-                    <span>2</span>
-                    <span style="font-size: 1.4rem; opacity: 0.6;">|</span>
-                    <span>0</span>
+            <div class="container" style="text-align: center; color: white;">
+                <p>© 2025 BookiBookingBot. Усі права захищені.</p>
+                <div id="counters" style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.2rem; font-weight: 600; margin-top: 10px;">
+                    <span id="visit-count">0</span>
+                    <span style="opacity: 0.6;">|</span>
+                    <span id="click-count">0</span>
                 </div>
             </div>
         </footer>
+        <script>
+          // Унікальні ключі для твого сайту (будь-який текст, головне — постійний)
+          const visitKey = 'bookibooking_visitors';
+          const clickKey = 'bookibooking_clicks';
+        
+          // Кожне відкриття сторінки — +1 у лічильник відвідувачів
+          fetch(`https://api.countapi.xyz/hit/${visitKey}`)
+            .then(res => res.json())
+            .then(data => document.getElementById('visit-count').textContent = data.value)
+            .catch(() => document.getElementById('visit-count').textContent = '—');
+        
+          // Показує кількість переходів у бота
+          fetch(`https://api.countapi.xyz/get/${clickKey}`)
+            .then(res => res.json())
+            .then(data => document.getElementById('click-count').textContent = data.value || 0)
+            .catch(() => document.getElementById('click-count').textContent = '—');
+        
+          // Додаємо клік-трекінг на кнопку "Розпочати безкоштовно"
+          document.querySelectorAll('a[href*="register_admin"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              fetch(`https://api.countapi.xyz/hit/${clickKey}`);
+            });
+          });
+        </script>
     </div>
 
 
@@ -963,13 +987,8 @@
         </section>
 
         <footer>
-            <div class="container" style="text-align: center; padding: 30px 0; color: #fff;">
-                <p style="margin-bottom: 10px;">© 2025 BookiBookingBot. Все права защищены.</p>
-                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.8rem; font-weight: bold;">
-                    <span>2</span>
-                    <span style="font-size: 1.4rem; opacity: 0.6;">|</span>
-                    <span>0</span>
-                </div>
+            <div class="container">
+                <p>© 2025 BookiBookingBot. Все права защищены.</p>
             </div>
         </footer>
     </div>
@@ -1004,6 +1023,7 @@
     </script>
 </body>
 </html>
+
 
 
 
