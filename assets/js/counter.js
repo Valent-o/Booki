@@ -1,52 +1,46 @@
 (async function(){
-  const NAMESPACE = 'bookibookingbot';
+  const NAMESPACE = 'bookibookingbot';  // уникальное имя для счетчика
   const VISIT_KEY = `${NAMESPACE}_visits`;
   const CLICK_KEY = `${NAMESPACE}_clicks`;
 
   const visitEl = document.getElementById('visit-count');
   const clickEl = document.getElementById('click-count');
 
-  await fetch(`https://countapi.nikz.dev/create?namespace=${NAMESPACE}&key=${VISIT_KEY}&value=0`).catch(()=>{});
-  await fetch(`https://countapi.nikz.dev/create?namespace=${NAMESPACE}&key=${CLICK_KEY}&value=0`).catch(()=>{});
+  // Универсальная функция для запросов к API
+  async function fetchCount(endpoint, key) {
+    try {
+      const res = await fetch(`https://countapi.nikz.me/${endpoint}/${NAMESPACE}/${key}`);
+      const data = await res.json();
+      return data.value;
+    } catch (e) {
+      console.error('CountAPI error:', e);
+      return null;
+    }
+  }
 
+  // Обновляем посещения раз в сутки
   const lastVisit = localStorage.getItem('bookibooking_last_visit');
   const now = Date.now();
   const ONE_DAY = 24 * 60 * 60 * 1000;
 
   if (!lastVisit || now - lastVisit > ONE_DAY) {
-    try {
-      const res = await fetch(`https://countapi.nikz.dev/hit/${NAMESPACE}/${VISIT_KEY}`);
-      const data = await res.json();
-      if (visitEl) visitEl.textContent = data.value;
-      localStorage.setItem('bookibooking_last_visit', now);
-    } catch {
-      if (visitEl) visitEl.textContent = '—';
-    }
+    const value = await fetchCount('hit', VISIT_KEY);
+    if (value !== null && visitEl) visitEl.textContent = value;
+    localStorage.setItem('bookibooking_last_visit', now);
   } else {
-    try {
-      const res = await fetch(`https://countapi.nikz.dev/get/${NAMESPACE}/${VISIT_KEY}`);
-      const data = await res.json();
-      if (visitEl) visitEl.textContent = data.value;
-    } catch {
-      if (visitEl) visitEl.textContent = '—';
-    }
+    const value = await fetchCount('get', VISIT_KEY);
+    if (value !== null && visitEl) visitEl.textContent = value;
   }
 
-  try {
-    const res = await fetch(`https://countapi.nikz.dev/get/${NAMESPACE}/${CLICK_KEY}`);
-    const data = await res.json();
-    if (clickEl) clickEl.textContent = data.value || 0;
-  } catch {
-    if (clickEl) clickEl.textContent = '—';
-  }
+  // Загружаем клики
+  const clicks = await fetchCount('get', CLICK_KEY);
+  if (clicks !== null && clickEl) clickEl.textContent = clicks;
 
+  // При нажатии на кнопку "Розпочати безкоштовно" увеличиваем клики
   document.querySelectorAll('a[href*="register_admin"]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      try {
-        const res = await fetch(`https://countapi.nikz.dev/hit/${NAMESPACE}/${CLICK_KEY}`);
-        const data = await res.json();
-        if (clickEl) clickEl.textContent = data.value;
-      } catch {}
+      const value = await fetchCount('hit', CLICK_KEY);
+      if (value !== null && clickEl) clickEl.textContent = value;
     });
   });
 })();
