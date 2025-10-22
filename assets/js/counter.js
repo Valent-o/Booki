@@ -1,9 +1,11 @@
 (async function(){
   const visitEl = document.getElementById('visit-count');
   const clickEl = document.getElementById('click-count');
-  const GITHUB_USER = 'ВАШ_USERNAME';
-  const GITHUB_REPO = 'ВАШ_REPO';
-  const GITHUB_TOKEN = 'ВАШ_PERSONAL_ACCESS_TOKEN'; // создайте в Settings > Developer settings
+  
+  // ЗАМЕНИТЕ ЭТИ ДАННЫЕ НА СВОИ:
+  const GITHUB_USER = 'Valent-o';  // ваш username
+  const GITHUB_REPO = 'Booki';     // название вашего репозитория
+  const GITHUB_TOKEN = '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';  // вставьте сюда токен
 
   // Загрузить текущие значения
   async function loadCounters() {
@@ -44,19 +46,19 @@
   await loadCounters();
 
   // Увеличить посещения (раз в день)
-  const lastVisit = localStorage.getItem('last_visit');
+  const lastVisit = localStorage.getItem('bookibooking_last_visit');
   const today = new Date().toDateString();
   if (lastVisit !== today) {
     await incrementCounter('visits');
-    localStorage.setItem('last_visit', today);
-    setTimeout(loadCounters, 2000); // Обновить через 2 сек
+    localStorage.setItem('bookibooking_last_visit', today);
+    setTimeout(loadCounters, 3000); // Обновить через 3 сек
   }
 
   // При клике на кнопку
   document.querySelectorAll('a[href*="register_admin"]').forEach(btn => {
     btn.addEventListener('click', async () => {
       await incrementCounter('clicks');
-      setTimeout(loadCounters, 2000);
+      setTimeout(loadCounters, 3000);
     });
   });
 })();
