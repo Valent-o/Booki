@@ -757,30 +757,59 @@
 
 <script>
 (function(){
-  const visitKey = 'bookibooking_visits';
-  const clickKey = 'bookibooking_clicks';
+  const VISIT_KEY = 'bookibooking_visits';
+  const CLICK_KEY = 'bookibooking_clicks';
+  const LAST_VISIT_TS_KEY = 'bookibooking_last_visit_ts';
 
-  // Получаем текущее значение счётчиков
-  let visits = parseInt(localStorage.getItem(visitKey) || '0', 10);
-  let clicks = parseInt(localStorage.getItem(clickKey) || '0', 10);
+  // Интервал "уникального" визита (в миллисекундах)
+  // По умолчанию: 24 часа. Поменяй значение, если нужен другой интервал.
+  const VISIT_TTL = 24 * 60 * 60 * 1000; // 24 часа
 
-  // При каждом открытии страницы +1 посещение
-  visits++;
-  localStorage.setItem(visitKey, visits);
-
-  // Выводим актуальные значения
   const visitEl = document.getElementById('visit-count');
   const clickEl = document.getElementById('click-count');
+
+  // Нормализованный парсинг int
+  const safeInt = v => {
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  // Текущие значения из localStorage
+  let visits = safeInt(localStorage.getItem(VISIT_KEY));
+  let clicks = safeInt(localStorage.getItem(CLICK_KEY));
+  const lastVisitTs = safeInt(localStorage.getItem(LAST_VISIT_TS_KEY));
+  const now = Date.now();
+
+  // Если последний "уникальный" визит был давно (больше VISIT_TTL), считаем новый визит
+  if (!lastVisitTs || (now - lastVisitTs) > VISIT_TTL) {
+    visits++;
+    localStorage.setItem(VISIT_KEY, visits);
+    localStorage.setItem(LAST_VISIT_TS_KEY, now);
+  }
+
+  // Показать значения в DOM (если элементы есть)
   if (visitEl) visitEl.textContent = visits;
   if (clickEl) clickEl.textContent = clicks;
 
-  // При нажатии на кнопку "Розпочати безкоштовно" увеличиваем клики
+  // Обработка кликов по ссылкам, содержащим "register_admin"
   document.querySelectorAll('a[href*="register_admin"]').forEach(btn => {
     btn.addEventListener('click', () => {
       clicks++;
-      localStorage.setItem(clickKey, clicks);
+      localStorage.setItem(CLICK_KEY, clicks);
       if (clickEl) clickEl.textContent = clicks;
     });
+  });
+
+  // --- опционально: обновление счётчиков при видимости страницы ---
+  // если нужно, можно обновлять элементы при возращении на вкладку
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      // Перезагрузим значения из localStorage (на случай изменений в другом табе)
+      const freshVisits = safeInt(localStorage.getItem(VISIT_KEY));
+      const freshClicks = safeInt(localStorage.getItem(CLICK_KEY));
+      if (visitEl) visitEl.textContent = freshVisits;
+      if (clickEl) clickEl.textContent = freshClicks;
+    }
   });
 })();
 </script>
@@ -1027,6 +1056,7 @@
     </script>
 </body>
 </html>
+
 
 
 
