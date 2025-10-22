@@ -2,30 +2,39 @@
   const visitEl = document.getElementById('visit-count');
   const clickEl = document.getElementById('click-count');
   
-  // ЗАМЕНИТЕ ЭТИ ДАННЫЕ НА СВОИ:
-  const GITHUB_USER = 'Valent-o';  // ваш username
-  const GITHUB_REPO = 'Booki';     // название вашего репозитория
-  const GITHUB_TOKEN = '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';  // вставьте сюда токен
+  const GITHUB_USER = 'Valent-o';
+  const GITHUB_REPO = 'Booki';
+  const GITHUB_TOKEN = 'ВАШ_ТОКЕН_СЮДА';  // вставьте ваш токен
 
-  // Загрузить текущие значения
+  // Загрузить текущие значения (с защитой от кэша)
   async function loadCounters() {
     try {
-      const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/counters.json?t=${Date.now()}`);
+      const timestamp = new Date().getTime();
+      const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/counters.json?nocache=${timestamp}`);
+      
+      if (!res.ok) {
+        throw new Error('Failed to fetch');
+      }
+      
       const data = await res.json();
+      console.log('Loaded counters:', data);  // для отладки
       
       if (visitEl) visitEl.textContent = data.visits || 0;
       if (clickEl) clickEl.textContent = data.clicks || 0;
+      
+      return data;
     } catch (e) {
       console.error('Failed to load counters:', e);
       if (visitEl) visitEl.textContent = '0';
       if (clickEl) clickEl.textContent = '0';
+      return { visits: 0, clicks: 0 };
     }
   }
 
   // Отправить запрос на увеличение счетчика
   async function incrementCounter(type) {
     try {
-      await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/dispatches`, {
+      const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/dispatches`, {
         method: 'POST',
         headers: {
           'Accept': 'application/vnd.github.v3+json',
@@ -37,8 +46,12 @@
           client_payload: { counter_type: type }
         })
       });
+      
+      console.log(`${type} incremented, status:`, response.status);
+      return true;
     } catch (e) {
       console.error('Failed to increment:', e);
+      return false;
     }
   }
 
@@ -48,17 +61,28 @@
   // Увеличить посещения (раз в день)
   const lastVisit = localStorage.getItem('bookibooking_last_visit');
   const today = new Date().toDateString();
+  
   if (lastVisit !== today) {
+    console.log('New visit detected, incrementing...');
     await incrementCounter('visits');
     localStorage.setItem('bookibooking_last_visit', today);
-    setTimeout(loadCounters, 3000); // Обновить через 3 сек
+    
+    // Перезагрузить счетчики через 5 секунд
+    setTimeout(async () => {
+      await loadCounters();
+    }, 5000);
   }
 
   // При клике на кнопку
   document.querySelectorAll('a[href*="register_admin"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (e) => {
+      console.log('Button clicked, incrementing clicks...');
       await incrementCounter('clicks');
-      setTimeout(loadCounters, 3000);
+      
+      // Перезагрузить счетчики через 5 секунд
+      setTimeout(async () => {
+        await loadCounters();
+      }, 5000);
     });
   });
 })();
