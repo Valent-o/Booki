@@ -1,0 +1,35 @@
+name: Update Counters
+
+on:
+  workflow_dispatch:
+    inputs:
+      counter_type:
+        description: 'Counter to increment (visits or clicks)'
+        required: true
+        default: 'visits'
+  repository_dispatch:
+    types: [increment_counter]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      - name: Update counter
+        run: |
+          python update_counter.py ${{ github.event.inputs.counter_type || github.event.client_payload.counter_type }}
+          
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add counters.db counters.json
+          git commit -m "Update counters" || echo "No changes to commit"
+          git push
