@@ -746,41 +746,45 @@
             </div>
         </section>
 
-        <footer>
-            <div class="container" style="text-align: center; color: white;">
-                <p>© 2025 BookiBookingBot. Усі права захищені.</p>
-                <div id="counters" style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.2rem; font-weight: 600; margin-top: 10px;">
-                    <span id="visit-count">0</span>
-                    <span style="opacity: 0.6;">|</span>
-                    <span id="click-count">0</span>
-                </div>
-            </div>
-        </footer>
-        <script>
-          // Унікальні ключі для твого сайту (будь-який текст, головне — постійний)
-          const visitKey = 'bookibooking_visitors';
-          const clickKey = 'bookibooking_clicks';
-        
-          // Кожне відкриття сторінки — +1 у лічильник відвідувачів
-          fetch(`https://api.countapi.xyz/hit/${visitKey}`)
-            .then(res => res.json())
-            .then(data => document.getElementById('visit-count').textContent = data.value)
-            .catch(() => document.getElementById('visit-count').textContent = '—');
-        
-          // Показує кількість переходів у бота
-          fetch(`https://api.countapi.xyz/get/${clickKey}`)
-            .then(res => res.json())
-            .then(data => document.getElementById('click-count').textContent = data.value || 0)
-            .catch(() => document.getElementById('click-count').textContent = '—');
-        
-          // Додаємо клік-трекінг на кнопку "Розпочати безкоштовно"
-          document.querySelectorAll('a[href*="register_admin"]').forEach(btn => {
-            btn.addEventListener('click', () => {
-              fetch(`https://api.countapi.xyz/hit/${clickKey}`);
-            });
-          });
-        </script>
-    </div>
+<footer style="background:#111; padding:20px 0; color:white; text-align:center;">
+  <p>© 2025 BookiBookingBot. Усі права захищені.</p>
+  <div id="counters" style="display:flex; justify-content:center; align-items:center; gap:20px; font-size:1.1rem; font-weight:600; margin-top:10px;">
+    <span id="visit-count">0</span>
+    <span style="opacity:0.6;">|</span>
+    <span id="click-count">0</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const visitKey = 'bookibooking_visits';
+  const clickKey = 'bookibooking_clicks';
+
+  // Получаем текущее значение счётчиков
+  let visits = parseInt(localStorage.getItem(visitKey) || '0', 10);
+  let clicks = parseInt(localStorage.getItem(clickKey) || '0', 10);
+
+  // При каждом открытии страницы +1 посещение
+  visits++;
+  localStorage.setItem(visitKey, visits);
+
+  // Выводим актуальные значения
+  const visitEl = document.getElementById('visit-count');
+  const clickEl = document.getElementById('click-count');
+  if (visitEl) visitEl.textContent = visits;
+  if (clickEl) clickEl.textContent = clicks;
+
+  // При нажатии на кнопку "Розпочати безкоштовно" увеличиваем клики
+  document.querySelectorAll('a[href*="register_admin"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      clicks++;
+      localStorage.setItem(clickKey, clicks);
+      if (clickEl) clickEl.textContent = clicks;
+    });
+  });
+})();
+</script>
+    
 
 
 
@@ -1023,6 +1027,7 @@
     </script>
 </body>
 </html>
+
 
 
 
