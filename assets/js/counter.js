@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // === Загрузка счетчиков ===
   async function loadCounters() {
     try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/site_stats?select=*`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/site_stats?select=stat_type,count`, {
         headers: {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -23,49 +23,19 @@ document.addEventListener('DOMContentLoaded', function() {
         visitElems.forEach(el => el.textContent = visits);
         clickElems.forEach(el => el.textContent = clicks);
         
-        console.log('Загружено - Visits:', visits, 'Clicks:', clicks);
+        console.log('✅ Загружено - Visits:', visits, 'Clicks:', clicks);
+      } else {
+        console.error('❌ Ошибка загрузки:', response.status, await response.text());
       }
     } catch (error) {
-      console.error('Ошибка загрузки счетчиков:', error);
+      console.error('❌ Ошибка:', error);
     }
   }
   
-  // === Увеличение счетчика ===
+  // === Увеличение счетчика напрямую через UPDATE ===
   async function incrementCounter(statType) {
     try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_stat`, {
-        method: 'POST',
+      // Сначала получаем текущее значение
+      const getResponse = await fetch(`${SUPABASE_URL}/rest/v1/site_stats?stat_type=eq.${statType}&select=count`, {
         headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ p_stat_type: statType })
-      });
-      
-      if (response.ok) {
-        const newCount = await response.json();
-        console.log(`${statType} увеличен:`, newCount);
-        loadCounters();
-      }
-    } catch (error) {
-      console.error(`Ошибка увеличения ${statType}:`, error);
-    }
-  }
-  
-  // === Отслеживание посещения (один раз за сессию) ===
-  if (!sessionStorage.getItem('bookibooking_visited')) {
-    incrementCounter('visits');
-    sessionStorage.setItem('bookibooking_visited', 'true');
-  }
-  
-  // === Отслеживание кликов ===
-  document.querySelectorAll('a[href*="register_admin"]').forEach(button => {
-    button.addEventListener('click', () => {
-      incrementCounter('clicks');
-    });
-  });
-  
-  // Первая загрузка
-  loadCounters();
-});
+          'apikey':
