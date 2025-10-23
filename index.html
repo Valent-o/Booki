@@ -970,35 +970,10 @@
 </footer>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const btnUk = document.getElementById('btn-uk');
-            const btnRu = document.getElementById('btn-ru');
-            const langUk = document.getElementById('lang-uk');
-            const langRu = document.getElementById('lang-ru');
-
-            function switchLanguage(lang) {
-                btnUk.classList.remove('active');
-                btnRu.classList.remove('active');
-                langUk.classList.remove('active');
-                langRu.classList.remove('active');
-
-                if (lang === 'uk') {
-                    btnUk.classList.add('active');
-                    langUk.classList.add('active');
-                } else {
-                    btnRu.classList.add('active');
-                    langRu.classList.add('active');
-                }
-            }
-
-            btnUk.addEventListener('click', function() { switchLanguage('uk'); });
-            btnRu.addEventListener('click', function() { switchLanguage('ru'); });
-
-            switchLanguage('uk');
-        });
-    <script src="https://raw.githubusercontent.com/Valent-o/Booki/main/assets/js/counter.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/Valent-o/Booki@main/assets/js/counter.js"></script>
+    
 </body>
 
 </html>
+
 
