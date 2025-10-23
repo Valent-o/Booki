@@ -747,14 +747,13 @@
         </section>
 
 <footer style="background:#111; padding:20px 0; color:white; text-align:center;">
-  <p>© 2025 BookiBookingBot. Усі права захищені.</p>
-  <div id="counters" style="display:flex; justify-content:center; align-items:center; gap:20px; font-size:1.1rem; font-weight:600; margin-top:10px;">
-    <span id="visit-count">0</span>
-    <span style="opacity:0.6;">|</span>
-    <span id="click-count">0</span>
-  </div>
-
-<script src="https://raw.githubusercontent.com/Valent-o/Booki/main/assets/js/counter.js"></script>
+    <p>© 2025 BookiBookingBot. Усі права захищені.</p>
+    <div id="counters" style="display:flex; justify-content:center; align-items:center; gap:20px; font-size:1.1rem; font-weight:600; margin-top:10px;">
+        <span>Відвідувачі: <span id="visit-count">0</span></span>
+        <span style="opacity:0.6;">|</span>
+        <span>Кліки: <span id="click-count">0</span></span>
+    </div>
+</footer>
 
 
     
@@ -1000,6 +999,7 @@
     </script>
 </body>
 </html>
+
 
 
 
