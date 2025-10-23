@@ -1,57 +1,71 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const workspace = 'bookibooking';
-  const apiBase = `https://api.counterapi.dev/v2/${workspace}/`;
-  const visitSlug = 'visit-count';
-  const clickSlug = 'click-count';
+  const SUPABASE_URL = 'https://fothwgfxotibfbpsdrde.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvdGh3Z2Z4b3RpYmZicHNkcmRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyMTA2OTcsImV4cCI6MjA3Njc4NjY5N30.ZfHc_nflkCJsYRq2KBl7DVRwnJSJU-cMxOwPWYoSPeo';
   
   const visitElems = document.querySelectorAll('#visit-count');
   const clickElems = document.querySelectorAll('#click-count');
   
-  // === Обновляем отображение ===
-  async function updateDisplay() {
+  // === Загрузка счетчиков ===
+  async function loadCounters() {
     try {
-      const visitRes = await fetch(apiBase + visitSlug);
-      const visitData = await visitRes.json();
-      const visitValue = visitData.data?.up_count ?? 0;
-      visitElems.forEach(el => el.textContent = visitValue);
-      console.log('Visits:', visitValue);
-    } catch (err) {
-      console.error('Ошибка visit:', err);
-      visitElems.forEach(el => el.textContent = '—');
-    }
-    
-    try {
-      const clickRes = await fetch(apiBase + clickSlug);
-      const clickData = await clickRes.json();
-      const clickValue = clickData.data?.up_count ?? 0;
-      clickElems.forEach(el => el.textContent = clickValue);
-      console.log('Clicks:', clickValue);
-    } catch (err) {
-      console.error('Ошибка click:', err);
-      clickElems.forEach(el => el.textContent = '—');
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/site_stats?select=*`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const visits = data.find(s => s.stat_type === 'visits')?.count || 0;
+        const clicks = data.find(s => s.stat_type === 'clicks')?.count || 0;
+        
+        visitElems.forEach(el => el.textContent = visits);
+        clickElems.forEach(el => el.textContent = clicks);
+        
+        console.log('Загружено - Visits:', visits, 'Clicks:', clicks);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки счетчиков:', error);
     }
   }
   
-  // === Счётчик посетителей ===
-  if (!localStorage.getItem('bookibooking_visited')) {
-    fetch(apiBase + visitSlug + '/increment')
-      .then(res => res.json())
-      .then(() => {
-        localStorage.setItem('bookibooking_visited', 'true');
-        setTimeout(updateDisplay, 500);
-      })
-      .catch(err => console.error('Ошибка increment visit:', err));
+  // === Увеличение счетчика ===
+  async function incrementCounter(statType) {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_stat`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ p_stat_type: statType })
+      });
+      
+      if (response.ok) {
+        const newCount = await response.json();
+        console.log(`${statType} увеличен:`, newCount);
+        loadCounters();
+      }
+    } catch (error) {
+      console.error(`Ошибка увеличения ${statType}:`, error);
+    }
   }
   
-  // === Счётчик кликов ===
-  document.querySelectorAll('a[href*="register_admin"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      fetch(apiBase + clickSlug + '/increment')
-        .then(res => res.json())
-        .then(() => setTimeout(updateDisplay, 500))
-        .catch(err => console.error('Ошибка increment click:', err));
+  // === Отслеживание посещения (один раз за сессию) ===
+  if (!sessionStorage.getItem('bookibooking_visited')) {
+    incrementCounter('visits');
+    sessionStorage.setItem('bookibooking_visited', 'true');
+  }
+  
+  // === Отслеживание кликов ===
+  document.querySelectorAll('a[href*="register_admin"]').forEach(button => {
+    button.addEventListener('click', () => {
+      incrementCounter('clicks');
     });
   });
   
-  updateDisplay();
+  // Первая загрузка
+  loadCounters();
 });
