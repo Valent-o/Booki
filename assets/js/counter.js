@@ -32,10 +32,54 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // === Увеличение счетчика напрямую через UPDATE ===
+  // === Увеличение счетчика ===
   async function incrementCounter(statType) {
     try {
-      // Сначала получаем текущее значение
+      // Получаем текущее значение
       const getResponse = await fetch(`${SUPABASE_URL}/rest/v1/site_stats?stat_type=eq.${statType}&select=count`, {
         headers: {
-          'apikey':
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      });
+      
+      if (getResponse.ok) {
+        const data = await getResponse.json();
+        const currentCount = data[0]?.count || 0;
+        const newCount = currentCount + 1;
+        
+        // Обновляем значение
+        const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/site_stats?stat_type=eq.${statType}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ count: newCount })
+        });
+        
+        if (updateResponse.ok) {
+          console.log(`✅ ${statType} увеличен до ${newCount}`);
+          await loadCounters(); // Обновляем отображение
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Ошибка увеличения ${statType}:`, error);
+    }
+  }
+  
+  // === Инициализация ===
+  loadCounters();
+  
+  // Увеличиваем визиты при загрузке страницы
+  incrementCounter('visits');
+  
+  // Отслеживаем клики по кнопкам "Начать бесплатно"
+  document.querySelectorAll('.cta-button').forEach(button => {
+    button.addEventListener('click', function() {
+      incrementCounter('clicks');
+    });
+  });
+});
